@@ -10,18 +10,18 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-      - uses: actions/setup-java@v4
+          node-version: 22
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: 17
+          java-version: 21
       - name: Prepare web files
         run: |
           mkdir -p www
           cp index.html www/
       - name: Setup Capacitor
         run: |
-          npm init -y
+          echo '{"name":"muazai","version":"1.0.0","private":true}' > package.json
           npm i @capacitor/core @capacitor/cli @capacitor/android
           npx cap init MuazAI com.muaz.aiapp --web-dir=www
           npx cap add android
