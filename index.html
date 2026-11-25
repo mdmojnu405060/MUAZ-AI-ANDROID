@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MUAZ AI</title><style>
+*{box-sizing:border-box}body{margin:0;background:#0b1020;color:#eef2ff;font-family:system-ui,Arial}
+main{max-width:760px;margin:auto;padding:18px}.top{display:flex;justify-content:space-between;align-items:center}
+h1{font-size:25px;margin:8px 0}.sub{color:#9ba8c7;font-size:13px}.panel{background:#151d33;border:1px solid #293653;border-radius:16px;padding:14px;margin:14px 0}
+#chat{height:58vh;overflow:auto;display:flex;flex-direction:column;gap:10px}.msg{padding:12px;border-radius:13px;max-width:90%;white-space:pre-wrap;line-height:1.5}.user{align-self:flex-end;background:#2858ad}.ai{align-self:flex-start;background:#25304a}
+textarea,select,button{font:inherit;border-radius:10px;border:1px solid #3b4a6b;padding:11px;background:#111a2e;color:white}
+textarea{width:100%;min-height:70px;resize:vertical}button{background:#2863c5;border:0;font-weight:600} .controls{display:flex;gap:8px;margin-top:8px}.controls button{flex:1}
+</style></head><body><main><div class="top"><div><h1>MUAZ AI</h1><div class="sub">Hybrid Cloud + Offline Assistant</div></div><select id="mode"><option value="auto">Auto Hybrid</option><option value="cloud">Cloud</option><option value="offline">Offline</option></select></div>
+<div class="panel"><div id="status" class="sub">Status loading…</div></div><div class="panel" id="chat"></div>
+<div class="panel"><textarea id="message" placeholder="এখানে লিখুন..."></textarea><div class="controls"><button onclick="send()">Send</button><button onclick="voice()">🎙 Voice</button><button onclick="speakLast()">🔊 Speak</button></div></div>
+<div class="sub">Memory is stored locally in this backend database. Cloud mode may require a provider key; Offline mode requires the downloaded model.</div></main>
+<script>
+const chat=document.getElementById('chat');let last='';
+function add(t,c){let d=document.createElement('div');d.className='msg '+c;d.textContent=t;chat.appendChild(d);chat.scrollTop=chat.scrollHeight}
+async function refresh(){try{let s=await (await fetch('/api/status')).json();document.getElementById('status').textContent=`Offline model: ${s.offline_model_downloaded?'Downloaded':'Not downloaded'} • Cloud: ${s.cloud_configured?'Configured':'Not configured'}`}catch(e){document.getElementById('status').textContent='Backend not connected'}}
+async function send(){let el=document.getElementById('message'),m=el.value.trim();if(!m)return;el.value='';add(m,'user');add('ভাবছি…','ai');let pending=chat.lastChild;try{let r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:m,mode:document.getElementById('mode').value})});let j=await r.json();pending.textContent=j.reply+'\n\n[Mode: '+j.mode+']';last=j.reply}catch(e){pending.textContent='Server connection error.'}}
+function voice(){let R=window.SpeechRecognition||window.webkitSpeechRecognition;if(!R){alert('এই ব্রাউজারে voice recognition নেই');return}let r=new R();r.lang='bn-BD';r.onresult=e=>{document.getElementById('message').value=e.results[0][0].transcript};r.start()}
+function speakLast(){if(last&&'speechSynthesis'in window){let u=new SpeechSynthesisUtterance(last);u.lang='bn-BD';speechSynthesis.speak(u)}}
+document.getElementById('message').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}});refresh();
+</script></body></html>
